@@ -12,6 +12,7 @@ class Player:
         self.points = 0
         self.hand = list
         self.is_dealer = is_dealer
+        self.stand = bool
 
     def deal(self):
         self.hand = []
@@ -38,7 +39,7 @@ class Player:
             else:
                 self.points += 11
         if self.points == 21:
-            print(f"\nBlackjack! {self.Player} wins!")
+            print(f"\nBlackjack!")
             self.wins += 1
             menu()
         if self.is_dealer == False:
@@ -69,6 +70,7 @@ class Player:
                     print("The dealer goes bust!")
                     print("You win!")
             else:
+                self.stand = True
                 print("The dealer stands.")
         else:
             answers = "yn"
@@ -76,7 +78,7 @@ class Player:
             prompt = prompt.lower()
             while prompt not in answers:
                 prompt = input("Answer [Y]es or [N]o. ")
-            if prompt == "y":
+            while prompt == "y":
                 self.hand.append(deck.pop())
                 new_card = self.hand[-1]
                 if int(new_card[0], 16) < 10:
@@ -93,14 +95,22 @@ class Player:
                 if self.points == 21:
                     print("You get 21! You win!")
                     self.wins += 1
+                    break
                 elif self.points > 21:
-                    print("You go bust!")
+                    print("You go bust! The dealer wins...")
+                    break
                 else:
                     print(f"You have {self.points} points.")
-                prompt = input("Hit? (y/n) ")
             else:
+                self.stand = True
                 print("You stand.")
             
+    def reveal():
+        pass
+
+class Game():
+    def __init__(self):
+        pass
 
 def shuffle():
     global deck
@@ -149,7 +159,7 @@ def menu():
 
 def main():
     menu()
-    while game:
+    if game:
         print("\n")
         player = Player()
         dealer = Player(is_dealer=True)
@@ -160,5 +170,6 @@ def main():
         dealer.get_points()
         player.hit()
         dealer.hit()
+        # reveal()
 
 main()
