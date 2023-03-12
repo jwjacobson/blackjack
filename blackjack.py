@@ -3,12 +3,12 @@
 What separates blackjack from other games
 is that it's based on dependent events,
 meaning past affects the probability in the future.
+- William Tell, The Card Counter
 """
 
 class Player:
-    def __init__(self, wins=0, losses=0, points=0, is_dealer=False):
+    def __init__(self, wins=0, points=0, is_dealer=False):
         self.wins = 0
-        self.losses = 0
         self.points = 0
         self.hand = list
         self.is_dealer = is_dealer
@@ -38,8 +38,9 @@ class Player:
             else:
                 self.points += 11
         if self.points == 21:
-            print("\nBlackjack!")
+            print(f"\nBlackjack! {self.Player} wins!")
             self.wins += 1
+            menu()
         if self.is_dealer == False:
             print(f"\nYou have {self.points} points.")
         else:
@@ -63,8 +64,10 @@ class Player:
                 print(f"The dealer gets the {value} of {suit}.")
                 if self.points == 21:
                     print("The dealer gets 21!")
+                    print("The dealer wins...")
                 elif self.points > 21:
                     print("The dealer goes bust!")
+                    print("You win!")
             else:
                 print("The dealer stands.")
         else:
@@ -88,11 +91,13 @@ class Player:
                 evaluate(new_card)
                 print(f"You get the {value} of {suit}.")
                 if self.points == 21:
-                    print("You get 21!")
+                    print("You get 21! You win!")
+                    self.wins += 1
                 elif self.points > 21:
                     print("You go bust!")
                 else:
                     print(f"You have {self.points} points.")
+                prompt = input("Hit? (y/n) ")
             else:
                 print("You stand.")
             
@@ -131,15 +136,29 @@ def evaluate(card):
         elif card[1]  == "C":
             suit = "Clubs"
 
+def menu():
+    global game
+    prompt = input("[N]ew game or [Q]uit? ")
+    while prompt.lower() != "n" and prompt.lower() != "q":
+        prompt = input("Choose [N] or [Q]. ")
+    if prompt.lower() == "n":
+        game = True
+    else:
+        game = False
+        print("Goodbye.")
 
+def main():
+    menu()
+    while game:
+        print("\n")
+        player = Player()
+        dealer = Player(is_dealer=True)
+        shuffle()
+        player.deal()
+        dealer.deal()
+        player.get_points()
+        dealer.get_points()
+        player.hit()
+        dealer.hit()
 
-
-player = Player()
-dealer = Player(is_dealer=True)
-shuffle()
-player.deal()
-dealer.deal()
-player.get_points()
-dealer.get_points()
-player.hit()
-dealer.hit()
+main()
