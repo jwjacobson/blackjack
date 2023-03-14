@@ -7,30 +7,36 @@ meaning past affects the probability in the future.
 """
 
 class Player:
-    def __init__(self, stand=False, wins=0, points=0, is_dealer=False):
+    def __init__(self, name, stand=False, wins=0, points=0, is_dealer=False):
+        self.name = name
         self.wins = 0
         self.points = 0
         self.hand = list
         self.is_dealer = is_dealer
         self.stand = stand
 
+    def __str__(self):
+        return f"{self.name}"
+
     def win(self):
         self.wins += 1
-        self.play_again()
+
+    def clear_points(self, other):
+        self.points = 0
+        other.points = 0
 
     def deal(self):
         self.hand = []
         for i in range(2):
             self.hand.append(deck.pop())
         for card in self.hand:
-            evaluate(card)
             if self.is_dealer == False:
-                print(f"You get the {value} of {suit}.")
+                print(f"{self} gets {evaluate(card)}.")
             else:
                 if card == self.hand[0]:
-                    print(f"The dealer gets the {value} of {suit}.")
+                    print(f"{self} gets {evaluate(card)}.")
                 else:
-                    print("The dealer's other card is hidden.")
+                    print(f"{self}'s other card is hidden.")
 
     def get_points(self):
         global tens
@@ -43,44 +49,61 @@ class Player:
             else:                           # Ace
                 self.points += 11
         if self.points == 21:
-            print(f"\nBlackjack!")
+            print(f"\n{self} gets a Blackjack!")
             self.win()
+            self.play_again(dealer)
         if self.is_dealer == False:
-            print(f"\nYou have {self.points} points.")
+            print(f"\n{self} has {self.points} points.")
         else:
-            if self.hand[0][0] in tens:
-                print("The dealer has 10 points showing.")
-            elif self.hand[0][0] == 'e':
-                print("The dealer has 11 points showing.")
+            global showing_points
+            showing_points = self.hand[0][0] 
+            if showing_points in tens:
+                print(f"{self} has 10 points showing.")
+                showing_points = 10
+                return showing_points
+            elif showing_points == 'e':
+                print(f"{self} has 11 points showing.")
+                showing_points = 11
+                return showing_points
             else:
-                print(f"The dealer has {self.hand[0][0]} points showing.")
+                print(f"{self} has {showing_points} points showing.")
+                showing_points = int(showing_points)
+                return showing_points
 
     def hit(self):
         if self.is_dealer:
-            if self.points <= 16:
+            while self.points <= 16:
                 self.hand.append(deck.pop())
                 new_card = self.hand[-1]
+                global showing_points
+                print(f"{self} gets {evaluate(new_card)}.")
                 if int(new_card[0], 16) < 10:
                     self.points += int(new_card[0])
+                    showing_points += int(new_card[0])
                 elif new_card[0] in tens:
                     self.points += 10
+                    showing_points += 10
                 else:
                     if self.points < 11:
                         self.points += 11
+                        showing_points += 11
                     else:
                         self.points += 1
-            else:
-                self.stand = True
-                print("The dealer stands.")
+                        showing_points += 1
+                print(f"{self} has {showing_points} points showing.")
+                self.value_check()
+            self.stand = True
+            print(f"{self} stands.")
         else:
             answers = "yn"
             prompt = input("Hit? (y/n) ")
             prompt = prompt.lower()
             while prompt not in answers:
                 prompt = input("Answer [Y]es or [N]o. ")
-            if prompt == "y":
+            while prompt == "y":
                 self.hand.append(deck.pop())
                 new_card = self.hand[-1]
+                print(f"{self} gets {evaluate(new_card)}.")
                 if int(new_card[0], 16) < 10:
                     self.points += int(new_card[0])
                 elif new_card[0] in tens:
@@ -90,65 +113,57 @@ class Player:
                         self.points += 11
                     else:
                         self.points += 1
-            else:
-                self.stand = True
-                print("You stand.")
+                print(f"{self} has {self.points} points.")
+                self.value_check()
+                prompt = input("Hit again? (y/n) ")
+                prompt = prompt.lower()
+                while prompt not in answers:
+                    prompt = input("Answer [Y]es or [N]o. ")
+                if prompt == 'n':
+                    break
+                else:
+                    continue
+            self.stand = True
+            print(f"{self} stands.")
     
 
-    def hit_results(self):
-        evaluate(new_card)
-        print(f"The {self} gets the {value} of {suit}.")
+    def value_check(self):
         if self.points == 21:
-            print("The {self} gets 21!")
-            print("The {self} wins...")
+            print(f"{self} gets 21!")
+            print(f"{self} wins!")
             self.win()
+            self.play_again()
         elif self.points > 21:
-            print("The dealer goes bust!")
-            print("You win!")
-            player.win()
+            print(f"{self} goes bust!")
         
-                # evaluate(new_card)
-                # print(f"You get the {value} of {suit}.")
-                # if self.points == 21:
-                #     print("You get 21! You win!")
-                #     self.win()
-                # elif self.points > 21:
-                #     print("You go bust! The dealer wins...")
-                #     dealer.win()
-                # else:
-                #     print(f"You have {self.points} points.")
-                #     prompt = input("Hit again? y/n ")
-                #     while prompt not in answers:
-                #         prompt = input("Answer [Y]es or [N]o. ")
-                #     if prompt.lower() == "n":
-                #         self.stand = True
-                #         print("You stand.")
-            
-    def play_again(self):
+    def play_again(self, other):
         global game
         prompt = input("Play again? (y/n) ")
         while prompt.lower() != "n" and prompt.lower() != "y":
             prompt = input("Choose [Y] or [N]. ")
         if prompt.lower() == "y":
-            self.points = 0
+            self.clear_points(other)
+            global deck
+            if len(deck) < 10:
+                print("Reshuffling...")
+            shuffle()
             game = True
         else:
             game = False
             print("Goodbye.")
 
-    def reveal(self):
-        evaluate(self.hand[0])
-        print(f"The dealer had the {value} of {suit}.")
-        print(f"The dealer had {self.points} points.")
-        if self.points > Player.points:
-            print("The dealer wins!")
+    def reveal(self, player):
+        hidden_card = self.hand[0]
+        print(f"{self} had {evaluate(hidden_card)}.")
+        print(f"{self} had {self.points} points.")
+        if self.points > player.points:
+            print(f"{self} wins!")
             self.win()
         elif player.points > self.points:
-            print("You win!")
+            print("Player wins!")
             player.win()
         else:
             print("A tie! No one wins...")
-            player.play_again()
 
 def shuffle():
     global deck
@@ -161,8 +176,6 @@ def shuffle():
     return deck
 
 def evaluate(card):
-    global value
-    global suit
     if int(card[0], 16) < 10:
         value = card[0]
     elif card[0] == "a":
@@ -184,8 +197,7 @@ def evaluate(card):
             suit = "Diamonds"
         elif card[1]  == "C":
             suit = "Clubs"
-
-
+    return f"the {value} of {suit}"
 
 def menu():
     global game
@@ -198,32 +210,20 @@ def menu():
         game = False
         print("Goodbye.")
 
-
-
 def main():
-    player = Player()                   # create players
-    dealer = Player(is_dealer=True)
-    shuffle()                           # create deck
-    menu()                                  
+    player = Player("Player")                       # create players
+    dealer = Player("Dealer", is_dealer=True)       #
+    shuffle()                                       # create deck
+    menu()                                          # play or quit
     while game:
         print(f"There are {len(deck)} cards left in the deck.")
-        player.deal()                       # deal cards
+        player.deal()                               # deal cards
         dealer.deal()
-        player.get_points()                 # calculate point value of dealt cards
+        player.get_points()                         # calculate point value of dealt cards
         dealer.get_points()
-        player.hit()                        # user input function: allow hitting until bust
+        player.hit()                                # user input function: allow hitting until bust
         dealer.hit()
-        if player.stand and dealer.stand:   # card reveal only if both players stand
-            dealer.reveal()
-# main()
-
-player = Player()                   
-dealer = Player(is_dealer=True)
-shuffle()
-# player.deal()
-# player.hit()
-dealer.deal()
-dealer.hit()
-
-# dealer.win()
-# print(dealer.wins)
+        if player.stand and dealer.stand:           # card reveal only if both players stand
+            dealer.reveal(player)
+        player.play_again(dealer)
+main()
