@@ -1,10 +1,6 @@
 #!/usr/bin/python
-"""
-What separates blackjack from other games
-is that it's based on dependent events,
-meaning past affects the probability in the future.
-- William Tell, The Card Counter
-"""
+import time
+import sys
 
 class Player:
     def __init__(self, name, stand=False, points=0, is_dealer=False):
@@ -85,10 +81,10 @@ class Player:
                 if self.value_check():
                     return True
             self.stand = True
-            print(f"{self} stands.")
+            print(f"\n{self} stands.\n")
         else:
             answers = "yn"
-            prompt = input("Hit? (y/n) ")
+            prompt = input("\nHit? (y/n) ")
             prompt = prompt.lower()
             while prompt not in answers:
                 prompt = input("Answer [Y]es or [N]o. ")
@@ -108,7 +104,7 @@ class Player:
                 print(f"{self} has {self.points} points.")
                 if self.value_check():
                     return True
-                prompt = input("Hit again? (y/n) ")
+                prompt = input("\nHit again? (y/n) ")
                 prompt = prompt.lower()
                 while prompt not in answers:
                     prompt = input("Answer [Y]es or [N]o. ")
@@ -126,7 +122,11 @@ class Player:
             return True
         elif self.points > 21:
             print(f"{self} goes bust!")
+            if self.is_dealer:
+                print(f"({self}'s other card was {evaluate(self.hand[0])}.)")
             return True
+        else:
+            return False
 
     def reveal(self, player):
         hidden_card = self.hand[0]
@@ -141,7 +141,7 @@ class Player:
 
 def play_again(player1, player2):
     global game
-    prompt = input("Play again? (y/n) ")
+    prompt = input("\nPlay again? (y/n) ")
     while prompt.lower() != "n" and prompt.lower() != "y":
         prompt = input("Choose [Y] or [N]. ")
     if prompt.lower() == "y":
@@ -168,8 +168,7 @@ def shuffle():
 
 def get_length():
     global deck
-    print(f"There are {len(deck)} cards left in the deck.")
-
+    print(f"\nThere are {len(deck)} cards left in the deck.\n")
 
 def evaluate(card):
     if int(card[0], 16) < 10:
@@ -196,8 +195,20 @@ def evaluate(card):
     return f"the {value} of {suit}"
 
 def menu():
+    sprint1("\u001b[43;1m\\\u001b[0m"*50 + "\n")
+    sprint1("\u001b[43;1m "*20 + "BLACKJACK " + "\u001b[43;1m \u001b[0m"*20 + "\n")
+    sprint1("\u001b[43;1m/\u001b[0m"*50 + "\n\n")
+    rest(1)
+    sprint2(quote1)
+    rest(.25)
+    sprint2(quote2)
+    rest(.25)
+    sprint2(quote3)
+    rest(2)
+    sprint2(quote4)
+    rest(2)
     global game
-    prompt = input("[N]ew game or [Q]uit? ")
+    prompt = input("\n\n[N]ew game or [Q]uit? ")
     while prompt.lower() != "n" and prompt.lower() != "q":
         prompt = input("Choose [N] or [Q]. ")
     if prompt.lower() == "n":
@@ -205,6 +216,26 @@ def menu():
     else:
         game = False
         print("Goodbye.")
+
+def sprint1(s):
+    for c in s:
+        sys.stdout.write(c)
+        sys.stdout.flush()
+        time.sleep(0.002)
+
+def sprint2(s):
+    for c in s:
+        sys.stdout.write(c)
+        sys.stdout.flush()
+        time.sleep(0.025)
+
+def rest(x):
+    time.sleep(x*0.5)
+
+quote1 = "\u001b[33;1mWhat separates blackjack from other games\n"
+quote2 = "is that it's based on dependent events,\n"
+quote3 = "meaning past affects the probability in the future.\n"
+quote4 = "- William Tell, The Card Counter (2021)\u001b[0m"
 
 def main():
     player = Player("Player")                       # create players
@@ -216,22 +247,10 @@ def main():
         player.deal()                               # deal cards
         dealer.deal()
         if not player.get_points():
-            dealer.get_points()
-        if not dealer.get_points():
-            player.hit()
-        if not player.hit():
-            dealer.hit()
-        if player.stand and dealer.stand:           # card reveal only if both players stand
-            dealer.reveal(player)
+            if dealer.get_points() != True:
+                if not player.hit():
+                    if not dealer.hit():
+                        dealer.reveal(player)
         play_again(player, dealer)
 
 main()
-# menu()
-# player = Player("Player")                       # create players
-# dealer = Player("Dealer", is_dealer=True)       #
-# shuffle()       
-# while game:
-#     print(f"There are {len(deck)} cards left in the deck.")
-#     player.deal()                               # deal cards
-#     dealer.deal()
-#     play_again(player, dealer)
