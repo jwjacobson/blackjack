@@ -7,9 +7,8 @@ meaning past affects the probability in the future.
 """
 
 class Player:
-    def __init__(self, name, stand=False, wins=0, points=0, is_dealer=False):
+    def __init__(self, name, stand=False, points=0, is_dealer=False):
         self.name = name
-        self.wins = 0
         self.points = 0
         self.hand = list
         self.is_dealer = is_dealer
@@ -17,13 +16,6 @@ class Player:
 
     def __str__(self):
         return f"{self.name}"
-
-    def win(self):
-        self.wins += 1
-
-    def clear_points(self, other):
-        self.points = 0
-        other.points = 0
 
     def deal(self):
         self.hand = []
@@ -50,8 +42,7 @@ class Player:
                 self.points += 11
         if self.points == 21:
             print(f"\n{self} gets a Blackjack!")
-            self.win()
-            self.play_again(dealer)
+            return True
         if self.is_dealer == False:
             print(f"\n{self} has {self.points} points.")
         else:
@@ -91,7 +82,8 @@ class Player:
                         self.points += 1
                         showing_points += 1
                 print(f"{self} has {showing_points} points showing.")
-                self.value_check()
+                if self.value_check():
+                    return True
             self.stand = True
             print(f"{self} stands.")
         else:
@@ -114,7 +106,8 @@ class Player:
                     else:
                         self.points += 1
                 print(f"{self} has {self.points} points.")
-                self.value_check()
+                if self.value_check():
+                    return True
                 prompt = input("Hit again? (y/n) ")
                 prompt = prompt.lower()
                 while prompt not in answers:
@@ -126,31 +119,14 @@ class Player:
             self.stand = True
             print(f"{self} stands.")
     
-
     def value_check(self):
         if self.points == 21:
             print(f"{self} gets 21!")
             print(f"{self} wins!")
-            self.win()
-            self.play_again()
+            return True
         elif self.points > 21:
             print(f"{self} goes bust!")
-        
-    def play_again(self, other):
-        global game
-        prompt = input("Play again? (y/n) ")
-        while prompt.lower() != "n" and prompt.lower() != "y":
-            prompt = input("Choose [Y] or [N]. ")
-        if prompt.lower() == "y":
-            self.clear_points(other)
-            global deck
-            if len(deck) < 10:
-                print("Reshuffling...")
-            shuffle()
-            game = True
-        else:
-            game = False
-            print("Goodbye.")
+            return True
 
     def reveal(self, player):
         hidden_card = self.hand[0]
@@ -158,12 +134,27 @@ class Player:
         print(f"{self} had {self.points} points.")
         if self.points > player.points:
             print(f"{self} wins!")
-            self.win()
         elif player.points > self.points:
             print("Player wins!")
-            player.win()
         else:
             print("A tie! No one wins...")
+
+def play_again(player1, player2):
+    global game
+    prompt = input("Play again? (y/n) ")
+    while prompt.lower() != "n" and prompt.lower() != "y":
+        prompt = input("Choose [Y] or [N]. ")
+    if prompt.lower() == "y":
+        player1.points = 0
+        player2.points = 0
+        global deck
+        if len(deck) < 10:
+            print("\nReshuffling...")
+            shuffle()
+        game = True
+    else:
+        game = False
+        print("Goodbye.")
 
 def shuffle():
     global deck
@@ -174,6 +165,11 @@ def shuffle():
         deck.add(hex(i+2)[2:] + "D")
         deck.add(hex(i+2)[2:] + "C")
     return deck
+
+def get_length():
+    global deck
+    print(f"There are {len(deck)} cards left in the deck.")
+
 
 def evaluate(card):
     if int(card[0], 16) < 10:
@@ -216,14 +212,26 @@ def main():
     shuffle()                                       # create deck
     menu()                                          # play or quit
     while game:
-        print(f"There are {len(deck)} cards left in the deck.")
+        get_length()
         player.deal()                               # deal cards
         dealer.deal()
-        player.get_points()                         # calculate point value of dealt cards
-        dealer.get_points()
-        player.hit()                                # user input function: allow hitting until bust
-        dealer.hit()
+        if not player.get_points():
+            dealer.get_points()
+        if not dealer.get_points():
+            player.hit()
+        if not player.hit():
+            dealer.hit()
         if player.stand and dealer.stand:           # card reveal only if both players stand
             dealer.reveal(player)
-        player.play_again(dealer)
+        play_again(player, dealer)
+
 main()
+# menu()
+# player = Player("Player")                       # create players
+# dealer = Player("Dealer", is_dealer=True)       #
+# shuffle()       
+# while game:
+#     print(f"There are {len(deck)} cards left in the deck.")
+#     player.deal()                               # deal cards
+#     dealer.deal()
+#     play_again(player, dealer)
