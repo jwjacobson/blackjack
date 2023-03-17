@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import time
 import sys
-import os
 
 
 class Player:
@@ -167,7 +166,6 @@ def play_again(player1, player2):
         if len(deck) < 10:  # Recreate deck if less than 10 cards
             print("\nReshuffling...")
             shuffle()
-            print("\n" * 100)
         game = True  # Continue gameplay loop
     else:
         game = False  # End
