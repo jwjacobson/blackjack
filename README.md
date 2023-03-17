@@ -6,7 +6,7 @@ This is my fourth weekend project for Coding Temple. The assignment was to make 
 
 I used a hybrid approach rather than full OOP: there is a player class instantiated as Player and Dealer, but other gameplay functions exist outside of classes.
 
-This project was much more complicated than I anticipated. As a result I wasn't able to spend as much time on user interface features like colors and timing. They can onnly be found in the title menu.
+This project was much more complicated than I anticipated. As a result I wasn't able to spend as much time on user interface features like colors and timing. They can only be found in the title menu.
 
 ### installation/configuration/etc.
 This program plays a game of [Blackjack](https://en.wikipedia.org/wiki/Blackjack "Wikipedia link") with the user. The computer plays the role of dealer. The deck tracks what cards have been played from hand to hand but is reshuffled at the beginning of any hand when less than 10 cards are left. The user is prompted for input when necessary.
